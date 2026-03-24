@@ -1,0 +1,11 @@
+{
+  "name": "plugin-for-promts",
+  "version": "1.0.0",
+  "description": "Browser extension for building and saving AI prompts",
+  "private": false,
+  "author": {
+    "name": "VUIVR",
+    "email": "ostrovskiyartem@gmail.com"
+  },
+  "license": "MIT"
+}

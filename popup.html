@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Prompt Builder</title>
+    <style>
+      :root {
+        --bg: #0f172a;
+        --card: #111827;
+        --border: #334155;
+        --text: #e5e7eb;
+        --muted: #94a3b8;
+        --accent: #3b82f6;
+        --danger: #ef4444;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        padding: 12px;
+        width: 420px;
+        min-height: 460px;
+        font-family: Arial, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+      }
+
+      .panel {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 12px;
+      }
+
+      .row {
+        margin-bottom: 10px;
+      }
+
+      .label {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      input[type="text"],
+      textarea,
+      select {
+        width: 100%;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: #0b1220;
+        color: var(--text);
+        padding: 8px;
+        font-size: 13px;
+      }
+
+      textarea {
+        min-height: 60px;
+        resize: vertical;
+      }
+
+      .checkbox-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .checkbox-row input[type="checkbox"] {
+        width: auto;
+      }
+
+      .checkbox-row .label {
+        margin-bottom: 0;
+      }
+
+      .tabs {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+
+      .tab-btn {
+        flex: 1;
+        border: 1px solid var(--border);
+        background: #0b1220;
+        color: var(--text);
+        border-radius: 8px;
+        padding: 8px;
+        cursor: pointer;
+      }
+
+      .tab-btn.active {
+        background: var(--accent);
+        border-color: var(--accent);
+      }
+
+      .tab {
+        display: none;
+      }
+
+      .tab.active {
+        display: block;
+      }
+
+      .actions {
+        display: flex;
+        gap: 8px;
+      }
+
+      button {
+        border: 1px solid var(--border);
+        background: #0b1220;
+        color: var(--text);
+        border-radius: 8px;
+        padding: 8px 10px;
+        cursor: pointer;
+      }
+
+      button.primary {
+        background: var(--accent);
+        border-color: var(--accent);
+      }
+
+      button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+
+      .status {
+        min-height: 16px;
+        margin-top: 8px;
+        font-size: 12px;
+      }
+
+      .status.error {
+        color: #fca5a5;
+      }
+
+      .status.success {
+        color: #86efac;
+      }
+
+      .saved-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .saved-item {
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 8px;
+        background: #0b1220;
+      }
+
+      .saved-title {
+        margin: 0 0 4px;
+        font-size: 13px;
+      }
+
+      .saved-meta {
+        margin: 0;
+        font-size: 11px;
+        color: var(--muted);
+      }
+
+      .saved-actions {
+        display: flex;
+        gap: 6px;
+      }
+
+      .icon-btn {
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background: transparent;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+      }
+
+      .icon-btn.delete {
+        color: var(--danger);
+        border-color: #7f1d1d;
+      }
+
+      .empty {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(2, 6, 23, 0.7);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 8px;
+      }
+
+      .modal-overlay.active {
+        display: flex;
+      }
+
+      .modal {
+        width: 100%;
+        max-width: 388px;
+        min-height: 400px;
+        max-height: calc(100vh - 16px);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        background: #0b1220;
+        padding: 10px;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      .modal-title {
+        margin: 0 0 8px;
+        font-size: 14px;
+      }
+
+      .modal-content {
+        margin: 0;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 8px;
+        flex: 1;
+        min-height: 0;
+        overflow: auto;
+        white-space: pre-wrap;
+        font-size: 12px;
+      }
+
+      .modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="panel">
+      <div class="tabs">
+        <button id="tabEditorBtn" class="tab-btn active" type="button">Промт</button>
+        <button id="tabSavedBtn" class="tab-btn" type="button">Сохраненные</button>
+      </div>
+
+      <section id="tabEditor" class="tab active">
+        <div class="row">
+          <label class="label" for="title">Тема запроса (название) *</label>
+          <input id="title" type="text" placeholder="Например: Рефакторинг компонента формы" />
+        </div>
+
+        <div class="row">
+          <label class="label" for="role">Роль &lt;role&gt;</label>
+          <textarea id="role" placeholder="Ты опытный фронтенд разработчик..."></textarea>
+        </div>
+
+        <div class="row">
+          <label class="label" for="task">Задача &lt;task&gt;</label>
+          <textarea id="task" placeholder="Нужно реализовать..."></textarea>
+        </div>
+
+        <div class="row">
+          <label class="label" for="context">Контекст &lt;context&gt;</label>
+          <textarea id="context" placeholder="Проект на React, используется..."></textarea>
+        </div>
+
+        <div class="row">
+          <label class="label" for="successCriteria">Критерии успеха &lt;success_criteria&gt;</label>
+          <textarea id="successCriteria" placeholder="Какие условия должен выполнить результат..."></textarea>
+        </div>
+
+        <div class="row">
+          <label class="label" for="example">Пример &lt;example&gt;</label>
+          <textarea id="example" placeholder="Пример желаемого ответа..."></textarea>
+        </div>
+
+        <div class="row">
+          <label class="label" for="audience">Аудитория &lt;audience&gt;</label>
+          <textarea id="audience" placeholder="Для кого ответ: junior, PM, клиент..."></textarea>
+        </div>
+
+        <div class="row">
+          <label class="label" for="priority">Приоритет &lt;priority&gt;</label>
+          <select id="priority">
+            <option value="">-- Не выбрано --</option>
+            <option value="speed">Скорость</option>
+            <option value="quality">Качество</option>
+            <option value="accuracy">Точность</option>
+            <option value="simplicity">Простота</option>
+          </select>
+        </div>
+
+        <div class="row checkbox-row">
+          <input id="validation" type="checkbox" />
+          <label class="label" for="validation">Cделать самопроверку перед ответом &lt;validation&gt;</label>
+        </div>
+
+        <div class="row">
+          <label class="label" for="constrains">Исключения &lt;constrains&gt;</label>
+          <textarea id="constrains" placeholder="Не использовать сторонние библиотеки..."></textarea>
+        </div>
+
+        <div class="row">
+          <label class="label" for="output">Формат вывода &lt;output&gt;</label>
+          <textarea id="output" placeholder="Ответ в виде шагов и кода..."></textarea>
+        </div>
+
+        <div class="actions">
+          <button id="copyBtn" class="primary" type="button">Копировать промт</button>
+          <button id="saveBtn" type="button">Сохранить промт</button>
+        </div>
+        <div id="editorStatus" class="status"></div>
+      </section>
+
+      <section id="tabSaved" class="tab">
+        <div id="savedList" class="saved-list"></div>
+        <div id="savedStatus" class="status"></div>
+      </section>
+    </div>
+
+    <div id="previewModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="previewTitle">
+      <div class="modal">
+        <h3 id="previewTitle" class="modal-title">Содержимое промта</h3>
+        <pre id="previewContent" class="modal-content"></pre>
+        <div class="modal-actions">
+          <button id="previewCloseBtn" type="button">Закрыть</button>
+          <button id="previewEditBtn" type="button">✏ Редактировать</button>
+          <button id="previewCopyBtn" class="primary" type="button">Сохранить в память</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="popup.js"></script>
+  </body>
+</html>
